@@ -23,6 +23,7 @@ func CreateConnection() *gorm.DB {
 	}
 
 	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.Token{})
 
 	return db
 }
