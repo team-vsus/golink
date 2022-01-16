@@ -19,15 +19,17 @@ import (
 )
 
 type registerReq struct {
-	Email    string `json:email`
-	Username string `json:username`
-	Password string `json:password`
+	Email     string `json:"email"`
+	Firstname string `json:"firstname"`
+	Lastname  string `json:"lastname"`
+	Password  string `json:"password"`
 }
 
 func (r registerReq) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Email, validation.Required),
-		validation.Field(&r.Username, validation.Required, validation.Length(3, 10)),
+		validation.Field(&r.Firstname, validation.Required, validation.Length(2, 20)),
+		validation.Field(&r.Lastname, validation.Required, validation.Length(2, 20)),
 		validation.Field(&r.Password, validation.Required, validation.Length(5, 30)),
 	)
 }
@@ -57,30 +59,31 @@ func Register(c *gin.Context) {
 
 	// insert to database
 	newUser := &models.User{
-		Email:    req.Email,
-		Username: req.Username,
-		Password: string(hash),
+		Email:     req.Email,
+		Firstname: req.Firstname,
+		Lastname:  req.Lastname,
+		Password:  string(hash),
 	}
 	db.Create(&newUser)
 
 	// generate new token
-	token := uuid.New()
+	token := utils.GenerateNewToken(6)
 	db.Create(&models.Token{
-		Token:     token.String(),
+		Token:     token,
 		UserId:    int(newUser.ID),
 		ExpiresAt: time.Now().AddDate(0, 0, 7),
 	})
 
 	// send confirmation email
-	utils.SendEmail("pikayuhno@gmail.com", []string{"muazahmed019@gmail.com"}, []byte(token.String()))
+	utils.SendEmail("pikayuhno@gmail.com", []string{"muazahmed019@gmail.com"}, []byte(token))
 
 	c.JSON(200, "Successfully created new user")
 
 }
 
 type loginReq struct {
-	Email    string `json:email`
-	Password string `json:password`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (r loginReq) Validate() error {
@@ -117,9 +120,10 @@ func Login(c *gin.Context) {
 	}
 	// generate jwt token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"iat":      time.Now().Unix(),
-		"id":       user.ID,
-		"username": user.Username,
+		"iat":       time.Now().Unix(),
+		"id":        user.ID,
+		"firstname": user.Firstname,
+		"lastname":  user.Lastname,
 	})
 
 	tokenStr, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
@@ -129,13 +133,18 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	c.SetCookie("token", tokenStr, 3600, "/", "localhost", false, true)
+
 	c.JSON(http.StatusOK, gin.H{
-		"token": tokenStr,
+		"id":        user.ID,
+		"email":     user.Email,
+		"firstname": user.Firstname,
+		"lastname":  user.Lastname,
 	})
 }
 
 type verifyReq struct {
-	Code string `json:code`
+	Code string `json:"code"`
 }
 
 func (r verifyReq) Validate() error {
@@ -171,7 +180,7 @@ func Verify(c *gin.Context) {
 }
 
 type forgotPasswordNewReq struct {
-	Email string `json:email`
+	Email string `json:"email"`
 }
 
 func (r forgotPasswordNewReq) Validate() error {
@@ -205,8 +214,8 @@ func ForgotPasswordNew(c *gin.Context) {
 }
 
 type forgotPasswordReq struct {
-	Token       string `json:token`
-	NewPassword string `json:newPassword`
+	Token       string `json:"token"`
+	NewPassword string `json:"newPassword"`
 }
 
 func (r forgotPasswordReq) Validate() error {
@@ -244,4 +253,9 @@ func ForgotPassword(c *gin.Context) {
 	db.Model(&models.User{}).Where("id = ?", token.UserId).Update("password", string(hash))
 
 	c.JSON(200, "Successfully sent link for changing password!")
+}
+
+func Logout(c *gin.Context) {
+	c.SetCookie("token", "", 0, "/", "localhost", false, true)
+	c.JSON(http.StatusOK, "")
 }

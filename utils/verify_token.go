@@ -10,15 +10,18 @@ import (
 )
 
 func VerifyToken(c *gin.Context) {
-	tokenString := c.GetHeader("authorization")
+	// tokenString := c.GetHeader("authorization")
+	tokenString, err := c.Cookie("token")
 
-	if len(tokenString) == 0 {
-		c.JSON(http.StatusUnauthorized, "")
+	if len(tokenString) == 0 || err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"failed": true,
+		})
 		c.Abort()
 		return
 	}
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -31,7 +34,9 @@ func VerifyToken(c *gin.Context) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	fmt.Println("Claims", claims)
 	if !ok || !token.Valid {
-		c.JSON(http.StatusUnauthorized, err)
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"failed": true,
+		})
 		c.Abort()
 		return
 	}

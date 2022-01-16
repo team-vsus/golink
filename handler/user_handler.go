@@ -42,9 +42,16 @@ func GetMe(c *gin.Context) {
 	err := db.First(&user, "id = ?", userId).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		c.JSON(404, "User not found")
+		c.JSON(404, gin.H{
+			"failed": true,
+		})
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, gin.H{
+		"id":        user.ID,
+		"email":     user.Email,
+		"firstname": user.Firstname,
+		"lastname":  user.Lastname,
+	})
 }
