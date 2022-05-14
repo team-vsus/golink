@@ -1,6 +1,9 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"github.com/team-vsus/golink/models"
+)
 
 type User struct {
 	gorm.Model
@@ -10,4 +13,10 @@ type User struct {
 	Password  string
 	Locked    bool
 	Verified  bool
+	Role 	  int
+	Company   models.Company
+	Applications []models.Application
+	ChannelsCandidate []models.Channel `gorm:"foreignKey:CandidateID"`
+	ChannelsRecruiter []models.Channel `gorm:"foreignKey:RecruiterID"`
+	Messages []models.Message `gorm:"foreignKey:SenderID"`
 }
