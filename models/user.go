@@ -14,7 +14,7 @@ type User struct {
 	Locked    bool
 	Verified  bool
 	Role 	  int
-	Company   models.Company
+	CompanyID uint
 	Applications []models.Application
 	ChannelsCandidate []models.Channel `gorm:"foreignKey:CandidateID"`
 	ChannelsRecruiter []models.Channel `gorm:"foreignKey:RecruiterID"`

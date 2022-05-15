@@ -11,6 +11,7 @@ type Application struct {
 	UserID uint
 	JobAdID uint 
 	createdAt time.Time
+	Pinned bool
 	Documents []models.Document
 	Interviews []models.Interview
 }

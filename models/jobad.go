@@ -9,7 +9,7 @@ type JobAd struct {
 	gorm.Model
 	Name string
 	Description string
-	Salary double
+	Salary float64
 	CompanyID uint
 	Applications []models.Application
 }
