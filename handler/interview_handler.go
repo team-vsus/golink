@@ -35,15 +35,13 @@ func GetInterviewByApplicationId(c *gin.Context) {
 
 type creatReqInterview struct {
 	ApplicationId uint      `json:"application_id"`
-	From          time.Time `json:"from"`
-	Till          time.Time `json:"till"`
+	Date          time.Time `json:"date"`
 }
 
 func (r creatReqInterview) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.ApplicationId, validation.Required),
-		validation.Field(&r.From, validation.Required),
-		validation.Field(&r.Till, validation.Required),
+		validation.Field(&r.Date, validation.Required),
 	)
 }
 
@@ -64,8 +62,7 @@ func createInterview(c *gin.Context) {
 
 	newInterview := &models.Interview{
 		ApplicationID: req.ApplicationId,
-		From:          req.From,
-		Till:          req.Till,
+		Date:          req.Date,
 	}
 
 	db.Create(newInterview)
@@ -102,4 +99,40 @@ func deleteAllInterviewsByApplicationId(c *gin.Context) {
 	db.Delete(&interview)
 
 	c.JSON(200, "Successfully deleted all interviews from  application")
+}
+
+type patchReqInterview struct {
+	ID   uint      `json:"id"`
+	Date time.Time `json:"date"`
+}
+
+func (r patchReqInterview) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.ID, validation.Required),
+		validation.Field(&r.Date, validation.Required),
+	)
+}
+
+func updateInterviewDate(c *gin.Context) {
+	db := c.MustGet("db").(*gorm.DB)
+
+	var req patchReqInterview
+	if ok := utils.BindData(c, &req); !ok {
+		return
+	}
+
+	var interview models.Interview
+
+	result := db.Find(&interview, "id = ?", req.ID)
+	if result.RowsAffected == 0 {
+		c.JSON(400, "Interview does not exist")
+		return
+	}
+
+	interview.Date = req.Date
+
+	db.Save(&result)
+
+	c.JSON(200, "Successfully updated date from Interview")
+
 }
