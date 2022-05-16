@@ -1,12 +1,7 @@
 package models
 
-import (
-	"gorm.io/gorm"
-	"github.com/team-vsus/golink/models"
-)
-
 type SocialMedia struct {
-	gorm.Model
-	Link string
+	ID        uint `gorm:"primarykey"`
+	Link      string
 	CompanyID uint
 }

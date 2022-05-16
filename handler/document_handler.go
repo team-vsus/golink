@@ -89,10 +89,20 @@ func deleteDocument(c *gin.Context) {
 	c.JSON(200, "Successfully deleted Document")
 }
 
+type deleteReqDocument struct {
+	ApplicationId uint `json:"application_id"`
+}
+
+func (r deleteReqDocument) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.ApplicationId, validation.Required),
+	)
+}
+
 func deleteAllDocumentByApplicationId(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	var req createReqDocument
+	var req deleteReqDocument
 	if ok := utils.BindData(c, &req); !ok {
 		return
 	}

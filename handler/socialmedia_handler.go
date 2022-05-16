@@ -85,10 +85,20 @@ func deleteSocialMedia(c *gin.Context) {
 	c.JSON(200, "Successfully deleted Social Media")
 }
 
+type deleteReqSocialMedia struct {
+	CompanyId uint `json:"company_id"`
+}
+
+func (r deleteReqSocialMedia) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.CompanyId, validation.Required),
+	)
+}
+
 func deleteAllSocialMediasByCompanyId(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	var req createReqSocialMedia
+	var req deleteReqSocialMedia
 	if ok := utils.BindData(c, &req); !ok {
 		return
 	}

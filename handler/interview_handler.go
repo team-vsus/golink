@@ -73,10 +73,20 @@ func createInterview(c *gin.Context) {
 	c.JSON(200, "Successfully created new Interview")
 }
 
+type deleteReqInterview struct {
+	ApplicationId uint `json:"application_id"`
+}
+
+func (r deleteReqInterview) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.ApplicationId, validation.Required),
+	)
+}
+
 func deleteAllInterviewsByApplicationId(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	var req creatReqInterview
+	var req deleteReqInterview
 	if ok := utils.BindData(c, &req); !ok {
 		return
 	}

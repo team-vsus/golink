@@ -1,14 +1,9 @@
 package models
 
-import	(
-	"gorm.io/gorm"
-	"github.com/team-vsus/golink/models"
-)
-
 type Channel struct {
-	gorm.Model
-	Name string
+	ID          uint `gorm:"primarykey"`
+	Name        string
 	CandidateID uint
 	RecruiterID uint
-	Messages []models.Message
+	Messages    []Message
 }

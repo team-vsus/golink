@@ -1,14 +1,11 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"time"
-	"github.com/team-vsus/golink/models"
 )
 
 type Interview struct {
-	gorm.Model
+	ID            uint `gorm:"primarykey"`
 	ApplicationID uint
-	From time.Time
-	Till time.Time
+	Date          time.Time
 }

@@ -88,10 +88,20 @@ func deleteMessage(c *gin.Context) {
 	c.JSON(200, "Successfully deleted Message")
 }
 
+type deleteReqMessage struct {
+	ChannelId uint `json:"channel_id"`
+}
+
+func (r deleteReqMessage) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.ChannelId, validation.Required),
+	)
+}
+
 func deleteAllMessagesByChannelId(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	var req createReqMessage
+	var req deleteReqMessage
 	if ok := utils.BindData(c, &req); !ok {
 		return
 	}

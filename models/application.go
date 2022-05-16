@@ -1,17 +1,15 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"time"
-	"github.com/team-vsus/golink/models"
 )
 
 type Application struct {
-	gorm.Model
-	UserID uint
-	JobAdID uint 
-	createdAt time.Time
-	Pinned bool
-	Documents []models.Document
-	Interviews []models.Interview
+	ID         uint `gorm:"primarykey"`
+	UserID     uint
+	JobAdID    uint
+	CreatedAt  time.Time
+	Pinned     bool
+	Documents  []Document
+	Interviews []Interview
 }
