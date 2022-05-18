@@ -1,34 +1,30 @@
 package handler
 
 import (
-	"errors"
-	"fmt"
-	"net/http"
-	"os"
-	"time"
-
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	validation "github.com/go-ozzo/ozzo-validation"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
 	"github.com/team-vsus/golink/models"
 	"github.com/team-vsus/golink/utils"
 )
 
-func GetAllJobAds (c *gin.Context) {
+func GetAllJobAds(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	var jobAds []models.JobAd
-	db.Find(&jobAds)
+	if filter := c.Param("filter"); filter == "" {
+		db.Find(&jobAds)
+	} else {
+		db.Where("open = ?", filter).Find(&jobAds)
+	}
 
 	c.JSON(200, jobAds)
 }
 
 // SUS
-func GetJobAd (c *gin.Context) {
+func GetJobAd(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	id := c.Param("id")
@@ -39,7 +35,17 @@ func GetJobAd (c *gin.Context) {
 	c.JSON(200, jobAd)
 }
 
-func GetJobAdByCompany (c *gin.Context) {
+// SUUUUUS
+func GetJobAdSearch(c *gin.Context) {
+	db := c.MustGet("db").(*gorm.DB)
+
+	var jobAds []models.JobAd
+	db.Where("description LIKE ?", "%"+c.Param("search")+"%").Find(&jobAds)
+
+	c.JSON(200, jobAds)
+}
+
+func GetJobAdByCompany(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	companyId := c.Param("companyId")
@@ -50,49 +56,81 @@ func GetJobAdByCompany (c *gin.Context) {
 	c.JSON(200, jobAds)
 }
 
-type createReq struct {
-	Name string `json:"name"`
-	Description string `json:"description"`
-	Salary float64 `json:"salary"`
-	CompanyId uint `json:"company_id"`
+type salaryReqJobAd struct {
+	Lowersalary float64 `json:"lower_salary"`
+	Uppersalary float64 `json:"upper_salary"`
 }
 
-func (r createReq) Validate() error {
+func (r salaryReqJobAd) Validate() error {
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.Name, validation.Required),
-		validation.Field(&r.Description, validation.Required),
-		validation.Field(&r.Salary, validation.Required),
-		validation.Field(&r.CompanyId, validation.Required),
+		validation.Field(&r.Lowersalary, validation.Required),
+		validation.Field(&r.Uppersalary, validation.Required),
 	)
 }
 
-func CreateJobAd (c *gin.Context) {
+// sus
+func GetJobAdBySalary(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	var req createReq
+	var req salaryReqJobAd
 	if ok := utils.BindData(c, &req); !ok {
 		return
 	}
 
+	var jobAds []models.JobAd
+	db.Where("salary >= ? AND salary <= ?", req.Lowersalary, req.Uppersalary).Find(&jobAds)
+
+	c.JSON(200, jobAds)
+}
+
+type createJobAdReq struct {
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Salary      float64 `json:"salary"`
+	Location    string  `json:"location"`
+}
+
+func (r createJobAdReq) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.Name, validation.Required),
+		validation.Field(&r.Description, validation.Required),
+		// validation.Field(&r.Salary, validation.Required),
+	)
+}
+
+// sus companyid from user
+func CreateJobAd(c *gin.Context) {
+	db := c.MustGet("db").(*gorm.DB)
+
+	var req createJobAdReq
+	if ok := utils.BindData(c, &req); !ok {
+		return
+	}
+
+	var user models.User
+	db.First(&user, "id = ?", c.MustGet("user").(jwt.MapClaims)["id"].(uint))
+
 	var company models.Company
-	result := db.Find(&company, "id = ?", req.CompanyId)
+	result := db.Find(&company, "id = ?", user.CompanyID)
 	if result.RowsAffected == 0 {
 		c.JSON(400, "Company does not exist")
 		return
 	}
 
 	newJobAd := &models.JobAd{
-		Name: req.Name,
+		Name:        req.Name,
 		Description: req.Description,
-		Salary: req.Salary,
-		CompanyId: req.CompanyId,
+		Salary:      req.Salary,
+		Open:        true,
+		Location:    req.Location,
+		CompanyID:   company.ID,
 	}
 	db.Create(newJobAd)
 
 	c.JSON(200, "Successfully created new jobad")
 }
 
-func DeleteJobAd (c *gin.Context) {
+func DeleteJobAd(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	id := c.Param("id")

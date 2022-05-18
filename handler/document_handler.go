@@ -2,6 +2,11 @@ package handler
 
 import (
 	"errors"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	validation "github.com/go-ozzo/ozzo-validation"
@@ -44,7 +49,6 @@ func (r createReqDocument) Validate() error {
 		validation.Field(&r.Size, validation.Required),
 		validation.Field(&r.ApplicationId, validation.Required),
 	)
-
 }
 
 func createDocument(c *gin.Context) {
@@ -118,4 +122,29 @@ func deleteAllDocumentByApplicationId(c *gin.Context) {
 	db.Delete(document)
 
 	c.JSON(200, "Successfully deleted all documents")
+}
+
+func uploadDocument(c *gin.Context) {
+	file, header, err := c.Request.FormFile("file")
+
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("file error: %s", err.Error()))
+	}
+
+	filename := header.Filename
+	out, err := os.Create("public/" + filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer out.Close()
+	_, err = io.Copy(out, file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	filepath := "http://localhost:8080/file/" + filename
+
+	c.JSON(http.StatusOK, gin.H{"filepath": filepath})
+
 }

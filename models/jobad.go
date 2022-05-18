@@ -6,5 +6,7 @@ type JobAd struct {
 	Description  string
 	Salary       float64
 	CompanyID    uint
+	Open         bool
+	Location     string
 	Applications []Application
 }

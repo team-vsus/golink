@@ -8,7 +8,7 @@ type User struct {
 	Password  string
 	Locked    bool
 	Verified  bool
-	Role      int
+	Applicant bool
 	CompanyID uint
 	// Description       string
 	Applications      []Application

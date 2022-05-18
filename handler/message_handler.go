@@ -46,6 +46,7 @@ func (r createReqMessage) Validate() error {
 	)
 }
 
+// sus sender
 func createMessage(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
