@@ -134,5 +134,4 @@ func updateInterviewDate(c *gin.Context) {
 	db.Save(&result)
 
 	c.JSON(200, "Successfully updated date from Interview")
-
 }

@@ -23,6 +23,7 @@ type registerReq struct {
 	Firstname string `json:"firstname"`
 	Lastname  string `json:"lastname"`
 	Password  string `json:"password"`
+	Applicant bool   `json:"applicant"`
 }
 
 func (r registerReq) Validate() error {
@@ -31,6 +32,7 @@ func (r registerReq) Validate() error {
 		validation.Field(&r.Firstname, validation.Required, validation.Length(2, 20)),
 		validation.Field(&r.Lastname, validation.Required, validation.Length(2, 20)),
 		validation.Field(&r.Password, validation.Required, validation.Length(5, 30)),
+		validation.Field(&r.Applicant, validation.Required),
 	)
 }
 
@@ -63,6 +65,7 @@ func Register(c *gin.Context) {
 		Firstname: req.Firstname,
 		Lastname:  req.Lastname,
 		Password:  string(hash),
+		Applicant: req.Applicant,
 	}
 	db.Create(&newUser)
 
@@ -77,7 +80,11 @@ func Register(c *gin.Context) {
 	// send confirmation email
 	utils.SendEmail("pikayuhno@gmail.com", []string{"muazahmed019@gmail.com"}, []byte(token))
 
-	c.JSON(200, "Successfully created new user")
+	if req.Applicant == true {
+		c.JSON(200, "Successfully created new user")
+	} else {
+		c.JSON(201, "Successfully created new user")
+	}
 
 }
 
