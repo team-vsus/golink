@@ -30,8 +30,8 @@ func InitHandler() *gin.Engine {
 	ag.POST("/login", Login)
 	ag.POST("/logout", Logout)
 	ag.POST("/verify", Verify)
-	ag.POST("/forgot/password/new", ForgotPasswordNew)
-	ag.POST("/forgot/password/", ForgotPassword)
+	ag.POST("/forgot/password", ForgotPassword)
+	ag.POST("/reset/password", ResetPassword)
 
 	ug := r.Group("/api/v1/users")
 	ug.Use(utils.VerifyToken)
@@ -42,12 +42,15 @@ func InitHandler() *gin.Engine {
 	cg := r.Group("/api/v1/companys")
 	cg.Use(utils.VerifyToken)
 	cg.GET("", GetAllCompanies)
+	cg.GET(":id", GetCompany)
+	cg.GET("/invite/", GetCompanyInvite)
 	cg.POST("", CreateCompany)
-	cg.DELETE("/:id", DeleteCompany)
+	cg.DELETE("", DeleteCompany)
 
 	apg := r.Group("/api/v1/applications")
 	apg.Use(utils.VerifyToken)
-	apg.GET("", GetAllApplicationByUser)
+	apg.GET("", GetAllApplicationByMe)
+	apg.GET("/user/:id", GetAllApplicationByUser)
 	apg.GET("/all/", GetAllApplications)
 	apg.GET("/job/:id", GetApplicationByJobAd)
 	apg.POST("", CreateApplication)
@@ -60,6 +63,8 @@ func InitHandler() *gin.Engine {
 	jg.GET("", GetAllJobAds)
 	jg.GET(":id", GetJobAd)
 	jg.GET("/company/:id", GetJobAdByCompany)
+	jg.GET("/search/:search", GetJobAdSearch)
+	jg.GET("/salary/", GetJobAdBySalary)
 	jg.POST("", CreateJobAd)
 	jg.DELETE("/:id", DeleteJobAd)
 
@@ -76,6 +81,7 @@ func InitHandler() *gin.Engine {
 	ig.GET("", GetAllInterviews)
 	ig.GET(":applicationid", GetInterviewByApplicationId)
 	ig.POST("", createInterview)
+	ig.PATCH("", updateInterviewDate)
 	ig.DELETE("/", deleteAllInterviewsByApplicationId)
 
 	mg := r.Group("/api/v1/messages")
@@ -93,6 +99,13 @@ func InitHandler() *gin.Engine {
 	sg.POST("", createSocialMedia)
 	sg.DELETE("/:id", deleteSocialMedia)
 	sg.DELETE("", deleteAllSocialMediasByCompanyId)
+
+	chg := r.Group("/api/v1/channels")
+	chg.Use(utils.VerifyToken)
+	chg.GET("", GetAllChannels)
+	chg.GET("/user/", GetChannelByUser)
+	chg.POST("", CreateChannel)
+	chg.DELETE("/:id", DeleteChannel)
 
 	return r
 }

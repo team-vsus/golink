@@ -1,19 +1,14 @@
 package handler
 
 import (
-	"errors"
-	"fmt"
-	"net/http"
-	"os"
+	"math/rand"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	validation "github.com/go-ozzo/ozzo-validation"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
 	"github.com/team-vsus/golink/models"
 	"github.com/team-vsus/golink/utils"
 )
@@ -25,9 +20,9 @@ func GetAllCompanies(c *gin.Context) {
 	db.Find(&companies)
 
 	c.JSON(200, companies)
-} 
+}
 
-func GetCompany (c *gin.Context) {
+func GetCompany(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	id := c.Param("id")
@@ -48,6 +43,7 @@ func (r createCompanyReq) Validate() error {
 	)
 }
 
+// sus owner
 func CreateCompany(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
@@ -64,27 +60,55 @@ func CreateCompany(c *gin.Context) {
 	}
 
 	newCompany := &models.Company{
-		Name: req.Name,
+		Name:   req.Name,
+		UserID: c.MustGet("user").(jwt.MapClaims)["id"].(uint),
 	}
 	db.Create(&newCompany)
 
 	c.JSON(200, "Successfully created new company")
 }
 
+
 type deleteCompanyReq struct {
 	Id string `json:"id"`
+
+func GenerateCompanyInvite(db *gorm.DB, company_id int) int {
+	code := 10000000 + rand.Intn(99999999-10000000)
+
+	db.Create(&models.CompanyInvite{
+		Code:      code,
+		CompanyId: company_id,
+		ExpiresAt: time.Now().AddDate(0, 0, 7),
+	})
+
+	return code
 }
-// sus
-func DeleteCompany (c *gin.Context) {
+
+func DeleteCompany(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	id := c.Param("id")
-
 	var company models.Company
-	db.Find(&company, "id = ?", id)
+	db.Find(&company, "id = ?", c.MustGet("user").(jwt.MapClaims)["id"].(uint))
 
 	db.Delete(&company)
 
 	c.JSON(200, "Successfully deleted company")
 }
 
+func GetCompanyInvite(c *gin.Context) {
+	db := c.MustGet("db").(*gorm.DB)
+
+	var user models.User
+	db.First(&user, "id = ?", c.MustGet("user").(jwt.MapClaims)["id"].(uint))
+
+	var company models.Company
+	result := db.Find(&company, "id = ?", user.CompanyID)
+	if result.RowsAffected == 0 {
+		c.JSON(400, "Company does not exist")
+		return
+	}
+
+	code := GenerateCompanyInvite(db, int(user.CompanyID))
+
+	c.JSON(200, code)
+}
