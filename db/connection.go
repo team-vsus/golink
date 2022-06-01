@@ -24,6 +24,14 @@ func CreateConnection() *gorm.DB {
 
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Token{})
+	db.AutoMigrate(&models.JobAd{})
+	db.AutoMigrate(&models.SocialMedia{})
+	db.AutoMigrate(&models.Company{})
+	db.AutoMigrate(&models.Application{})
+	db.AutoMigrate(&models.Interview{})
+	db.AutoMigrate(&models.Channel{})
+	db.AutoMigrate(&models.Message{})
+	db.AutoMigrate(&models.Document{})
 
 	return db
 }

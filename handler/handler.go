@@ -39,5 +39,60 @@ func InitHandler() *gin.Engine {
 	ug.GET(":id", GetUser)
 	ug.GET("/me", GetMe)
 
+	cg := r.Group("/api/v1/companys")
+	cg.Use(utils.VerifyToken)
+	cg.GET("", GetAllCompanies)
+	cg.POST("", CreateCompany)
+	cg.DELETE("/:id", DeleteCompany)
+
+	apg := r.Group("/api/v1/applications")
+	apg.Use(utils.VerifyToken)
+	apg.GET("", GetAllApplicationByUser)
+	apg.GET("/all/", GetAllApplications)
+	apg.GET("/job/:id", GetApplicationByJobAd)
+	apg.POST("", CreateApplication)
+	apg.DELETE("/:id", DeleteApplication)
+	apg.DELETE("/job/:id", DeleteApplicationbyJobAd)
+
+	jg := r.Group("/api/v1/jobads")
+	jg.Use(utils.VerifyToken)
+	// getJobAdByMe
+	jg.GET("", GetAllJobAds)
+	jg.GET(":id", GetJobAd)
+	jg.GET("/company/:id", GetJobAdByCompany)
+	jg.POST("", CreateJobAd)
+	jg.DELETE("/:id", DeleteJobAd)
+
+	dg := r.Group("/api/v1/documents")
+	dg.Use(utils.VerifyToken)
+	dg.GET("", GetAllDocuments)
+	dg.GET(":applicationid", GetDocumentByApplicationId)
+	dg.POST("", createDocument)
+	dg.DELETE("/:id", deleteDocument)
+	dg.DELETE("", deleteAllDocumentByApplicationId)
+
+	ig := r.Group("/api/v1/interviews")
+	ig.Use(utils.VerifyToken)
+	ig.GET("", GetAllInterviews)
+	ig.GET(":applicationid", GetInterviewByApplicationId)
+	ig.POST("", createInterview)
+	ig.DELETE("/", deleteAllInterviewsByApplicationId)
+
+	mg := r.Group("/api/v1/messages")
+	mg.Use(utils.VerifyToken)
+	mg.GET("", GetAllMessages)
+	mg.GET(":channelid", GetMessageByChannelId)
+	mg.POST("", createMessage)
+	mg.DELETE("/:id", deleteMessage)
+	mg.DELETE("", deleteAllMessagesByChannelId)
+
+	sg := r.Group("/api/v1/social")
+	sg.Use(utils.VerifyToken)
+	sg.GET("", GetAllSocialMedias)
+	sg.GET(":companyid", GetSocialMediaByCompanyId)
+	sg.POST("", createSocialMedia)
+	sg.DELETE("/:id", deleteSocialMedia)
+	sg.DELETE("", deleteAllSocialMediasByCompanyId)
+
 	return r
 }
