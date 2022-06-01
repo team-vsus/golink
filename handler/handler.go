@@ -100,5 +100,12 @@ func InitHandler() *gin.Engine {
 	sg.DELETE("/:id", deleteSocialMedia)
 	sg.DELETE("", deleteAllSocialMediasByCompanyId)
 
+	chg := r.Group("/api/v1/channels")
+	chg.Use(utils.VerifyToken)
+	chg.GET("", GetAllChannels)
+	chg.GET("/user/", GetChannelByUser)
+	chg.POST("", CreateChannel)
+	chg.DELETE("/:id", DeleteChannel)
+
 	return r
 }
