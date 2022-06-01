@@ -1,24 +1,15 @@
 package handler
 
 import (
-	"errors"
-	"fmt"
-	"net/http"
-	"os"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	validation "github.com/go-ozzo/ozzo-validation"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
 	"github.com/team-vsus/golink/models"
 	"github.com/team-vsus/golink/utils"
 )
 
-func GetAllJobAds (c *gin.Context) {
+func GetAllJobAds(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	var jobAds []models.JobAd
@@ -28,7 +19,7 @@ func GetAllJobAds (c *gin.Context) {
 }
 
 // SUS
-func GetJobAd (c *gin.Context) {
+func GetJobAd(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	id := c.Param("id")
@@ -39,7 +30,7 @@ func GetJobAd (c *gin.Context) {
 	c.JSON(200, jobAd)
 }
 
-func GetJobAdByCompany (c *gin.Context) {
+func GetJobAdByCompany(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	companyId := c.Param("companyId")
@@ -50,14 +41,14 @@ func GetJobAdByCompany (c *gin.Context) {
 	c.JSON(200, jobAds)
 }
 
-type createReq struct {
-	Name string `json:"name"`
-	Description string `json:"description"`
-	Salary float64 `json:"salary"`
-	CompanyId uint `json:"company_id"`
+type createJobAdReq struct {
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Salary      float64 `json:"salary"`
+	CompanyId   uint    `json:"company_id"`
 }
 
-func (r createReq) Validate() error {
+func (r createJobAdReq) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Name, validation.Required),
 		validation.Field(&r.Description, validation.Required),
@@ -66,10 +57,10 @@ func (r createReq) Validate() error {
 	)
 }
 
-func CreateJobAd (c *gin.Context) {
+func CreateJobAd(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	var req createReq
+	var req createJobAdReq
 	if ok := utils.BindData(c, &req); !ok {
 		return
 	}
@@ -82,17 +73,17 @@ func CreateJobAd (c *gin.Context) {
 	}
 
 	newJobAd := &models.JobAd{
-		Name: req.Name,
+		Name:        req.Name,
 		Description: req.Description,
-		Salary: req.Salary,
-		CompanyId: req.CompanyId,
+		Salary:      req.Salary,
+		CompanyID:   req.CompanyId,
 	}
 	db.Create(newJobAd)
 
 	c.JSON(200, "Successfully created new jobad")
 }
 
-func DeleteJobAd (c *gin.Context) {
+func DeleteJobAd(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	id := c.Param("id")

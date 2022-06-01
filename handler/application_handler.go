@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -48,14 +49,16 @@ func (r createReq) Validate() error {
 	)
 }
 
-// SUS docs
+
 func CreateApplication (c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
+
 
 	var req createReq
 	if ok := utils.BindData(c, &req); !ok {
 		return
 	}
+
 
 	var jobad models.JobAd
 	result := db.Find(&jobad, "id = ?", req.JobAdID)
@@ -64,21 +67,18 @@ func CreateApplication (c *gin.Context) {
 		return
 	}
 
-	var application := &models.Application{
+	newApplication := &models.Application{
 		JobAdID: req.JobAdID,
 		Documents: req.Documents,
 		CreatedAt: time.Now(),
 		Pinned: false,
 		UserID: c.MustGet("user").(jwt.MapClaims)["id"].(uint),
 	}
-	db.Create(&application)
+	db.Create(newApplication)
 
-	for _, document := range req.Documents {
-		document.ApplicationID = application.ID
-		db.Create(&document)
-	}
+	uploadDocument(db,req.Documents)
 
-	c.JSON(200, application)
+	 c.JSON(200, newApplication)
 }
 
 type deleteReq struct {
@@ -103,4 +103,21 @@ func DeleteApplication (c *gin.Context) {
 	db.Delete(&application)
 
 	c.JSON(200, "Successfully deleted application")
+}
+
+func uploadDocument(db *gorm.DB, documents [] models.Document){
+		form, err := c.MultipartForm()
+		if err != nil {
+			c.String(http.StatusBadRequest, "get form err: %s", err.Error())
+			return
+		}
+		file := form.File["files"]
+
+		for _, file := range documents {
+			filename := filepath.Base(file.Name)
+			if err := c.SaveUploadedFile(file, filename); err != nil {
+				c.String(http.StatusBadRequest, "upload file err: %s", err.Error())
+				return
+			}
+		}
 }

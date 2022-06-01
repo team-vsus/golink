@@ -38,11 +38,11 @@ func GetCompany (c *gin.Context) {
 	c.JSON(200, company)
 }
 
-type createReq struct {
+type createCompanyReq struct {
 	Name string `json:"name"`
 }
 
-func (r createReq) Validate() error {
+func (r createCompanyReq) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Name, validation.Required),
 	)
@@ -51,7 +51,7 @@ func (r createReq) Validate() error {
 func CreateCompany(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	var req createReq
+	var req createCompanyReq
 	if ok := utils.BindData(c, &req); !ok {
 		return
 	}
@@ -71,7 +71,7 @@ func CreateCompany(c *gin.Context) {
 	c.JSON(200, "Successfully created new company")
 }
 
-type deleteReq struct {
+type deleteCompanyReq struct {
 	Id string `json:"id"`
 }
 // sus

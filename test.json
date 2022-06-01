@@ -1,0 +1,75 @@
+{
+    "test": [
+        {
+            "link": "https://localhost:8080/api/v1/messages",
+            "json":{
+                "channel_id":"1",
+                "content": "Hallo Demo Test",
+                "sender_id":"2"
+            
+            }
+
+        },
+
+        {
+            "link": "https://localhost:8080/api/v1/messages",
+            "json":{
+                "channel_id":"1"
+            }
+        },
+
+        {
+            "link":"https://localhost:8080/api/v1/interviews",
+             "json":{
+               "application_id": "12",  
+               "date": "2022-05-01"
+             }
+        },
+
+        {
+            "link":"https://localhost:8080/api/v1/interviews",
+            "json":{
+              "application_id":"12"
+            } 
+        },
+
+        {
+            "link":"https://localhost:8080/api/v1/interviews",
+            "json":{
+                "id": "3",
+                "date":"2022-05-01"
+            }
+        },
+
+        {
+            "link":"https://localhost:8080/api/v1/documents",
+            "json":{
+                "name": "Bewerbungsschreiben",
+                "size": "14",
+                "application_id": "4"
+            }
+        },
+
+        {
+            "link":"https://localhost:8080/api/v1/documents",
+            "json":{
+                "application_id":"4"
+            }
+        },
+
+        {
+            "link":"https://localhost:8080/api/v1/social",
+            "json":{
+                "link":"https://www.instagram.com/",
+                "company_id": "7"
+            }
+        },
+
+        {
+            "link":"https://localhost:8080/api/v1/social",
+            "json":{
+                "company_id":"7"
+            }
+        }
+    ]
+}
