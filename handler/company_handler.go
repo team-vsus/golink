@@ -61,7 +61,7 @@ func CreateCompany(c *gin.Context) {
 
 	newCompany := &models.Company{
 		Name:   req.Name,
-		UserID: c.MustGet("user").(jwt.MapClaims)["id"].(uint),
+		UserID: uint(c.MustGet("user").(jwt.MapClaims)["id"].(float64)),
 	}
 	db.Create(&newCompany)
 
@@ -84,7 +84,7 @@ func DeleteCompany(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	var company models.Company
-	db.Find(&company, "id = ?", c.MustGet("user").(jwt.MapClaims)["id"].(uint))
+	db.Find(&company, "user_id = ?", uint(c.MustGet("user").(jwt.MapClaims)["id"].(float64)))
 
 	db.Delete(&company)
 
@@ -95,7 +95,7 @@ func GetCompanyInvite(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	var user models.User
-	db.First(&user, "id = ?", c.MustGet("user").(jwt.MapClaims)["id"].(uint))
+	db.First(&user, "id = ?", uint(c.MustGet("user").(jwt.MapClaims)["id"].(float64)))
 
 	var company models.Company
 	result := db.Find(&company, "id = ?", user.CompanyID)

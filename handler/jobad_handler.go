@@ -35,6 +35,17 @@ func GetJobAd(c *gin.Context) {
 	c.JSON(200, jobAd)
 }
 
+func GetOpenJobAd(c *gin.Context) {
+	db := c.MustGet("db").(*gorm.DB)
+
+	open := c.Param("open")
+
+	var jobAds []models.JobAd
+	db.Where("open = ?", open).Find(&jobAds)
+
+	c.JSON(200, jobAds)
+}
+
 // SUUUUUS
 func GetJobAdSearch(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
@@ -48,7 +59,7 @@ func GetJobAdSearch(c *gin.Context) {
 func GetJobAdByCompany(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	companyId := c.Param("companyId")
+	companyId := c.Param("id")
 
 	var jobAds []models.JobAd
 	db.Find(&jobAds, "company_id = ?", companyId)
@@ -108,7 +119,7 @@ func CreateJobAd(c *gin.Context) {
 	}
 
 	var user models.User
-	db.First(&user, "id = ?", c.MustGet("user").(jwt.MapClaims)["id"].(uint))
+	db.First(&user, "id = ?", uint(c.MustGet("user").(jwt.MapClaims)["id"].(float64)))
 
 	var company models.Company
 	result := db.Find(&company, "id = ?", user.CompanyID)

@@ -33,7 +33,7 @@ func GetChannel(c *gin.Context) {
 func GetChannelByUser(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	userID := c.MustGet("user").(jwt.MapClaims)["id"].(uint)
+	userID := uint(c.MustGet("user").(jwt.MapClaims)["id"].(float64))
 
 	var channel models.Channel
 	db.Find(&channel, "candidate_id = ? or recruiter_id = ?", userID, userID)
