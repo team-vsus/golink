@@ -1,6 +1,8 @@
 package handler
 
 import (
+
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	validation "github.com/go-ozzo/ozzo-validation"
@@ -35,7 +37,7 @@ func GetJobAd(c *gin.Context) {
 	c.JSON(200, jobAd)
 }
 
-// SUUUUUS
+
 func GetJobAdSearch(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
@@ -44,6 +46,7 @@ func GetJobAdSearch(c *gin.Context) {
 
 	c.JSON(200, jobAds)
 }
+
 
 func GetJobAdByCompany(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
@@ -55,6 +58,7 @@ func GetJobAdByCompany(c *gin.Context) {
 
 	c.JSON(200, jobAds)
 }
+
 
 type salaryReqJobAd struct {
 	Lowersalary float64 `json:"lower_salary"`
@@ -83,10 +87,12 @@ func GetJobAdBySalary(c *gin.Context) {
 	c.JSON(200, jobAds)
 }
 
+
 type createJobAdReq struct {
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
 	Salary      float64 `json:"salary"`
+	CompanyId   uint    `json:"company_id"`
 	Location    string  `json:"location"`
 }
 
@@ -98,7 +104,7 @@ func (r createJobAdReq) Validate() error {
 	)
 }
 
-// sus companyid from user
+
 func CreateJobAd(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
@@ -121,6 +127,7 @@ func CreateJobAd(c *gin.Context) {
 		Name:        req.Name,
 		Description: req.Description,
 		Salary:      req.Salary,
+		CompanyID:   req.CompanyId,
 		Open:        true,
 		Location:    req.Location,
 		CompanyID:   company.ID,

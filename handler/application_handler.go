@@ -1,6 +1,11 @@
 package handler
 
 import (
+	"errors"
+	"fmt"
+	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -62,14 +67,23 @@ func (r createApplicationReq) Validate() error {
 	)
 }
 
-// SUS docs
+
+
+func CreateApplication (c *gin.Context) {
+	db := c.MustGet("db").(*gorm.DB)
+
+
+	var req createReq
+
 func CreateApplication(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	var req createApplicationReq
+
 	if ok := utils.BindData(c, &req); !ok {
 		return
 	}
+
 
 	var jobad models.JobAd
 	result := db.Find(&jobad, "id = ?", req.JobAdID)
@@ -77,6 +91,18 @@ func CreateApplication(c *gin.Context) {
 		c.JSON(400, "JobAd not found")
 		return
 	}
+
+
+	newApplication := &models.Application{
+		JobAdID: req.JobAdID,
+		Documents: req.Documents,
+		CreatedAt: time.Now(),
+		Pinned: false,
+		UserID: c.MustGet("user").(jwt.MapClaims)["id"].(uint),
+	}
+	db.Create(newApplication)
+
+	uploadDocument(db,req.Documents)
 
 	for _, document := range req.Documents {
 		newDocument := &models.Document{
@@ -95,7 +121,8 @@ func CreateApplication(c *gin.Context) {
 	}
 	db.Create(&application)
 
-	c.JSON(200, application)
+
+	 c.JSON(200, newApplication)
 }
 
 type deleteApplicationReq struct {
@@ -127,6 +154,24 @@ func DeleteApplication(c *gin.Context) {
 	db.Delete(&application)
 
 	c.JSON(200, "Successfully deleted application")
+}
+
+
+func uploadDocument(db *gorm.DB, documents [] models.Document){
+		form, err := c.MultipartForm()
+		if err != nil {
+			c.String(http.StatusBadRequest, "get form err: %s", err.Error())
+			return
+		}
+		file := form.File["files"]
+
+		for _, file := range documents {
+			filename := filepath.Base(file.Name)
+			if err := c.SaveUploadedFile(file, filename); err != nil {
+				c.String(http.StatusBadRequest, "upload file err: %s", err.Error())
+				return
+			}
+		}
 }
 
 func DeleteApplicationbyJobAd(c *gin.Context) {

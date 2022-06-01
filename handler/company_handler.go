@@ -68,6 +68,10 @@ func CreateCompany(c *gin.Context) {
 	c.JSON(200, "Successfully created new company")
 }
 
+
+type deleteCompanyReq struct {
+	Id string `json:"id"`
+
 func GenerateCompanyInvite(db *gorm.DB, company_id int) int {
 	code := 10000000 + rand.Intn(99999999-10000000)
 
