@@ -30,8 +30,8 @@ func InitHandler() *gin.Engine {
 	ag.POST("/login", Login)
 	ag.POST("/logout", Logout)
 	ag.POST("/verify", Verify)
-	ag.POST("/forgot/password/new", ForgotPasswordNew)
-	ag.POST("/forgot/password/", ForgotPassword)
+	ag.POST("/forgot/password", ForgotPassword)
+	ag.POST("/reset/password", ResetPassword)
 
 	ug := r.Group("/api/v1/users")
 	ug.Use(utils.VerifyToken)

@@ -125,6 +125,14 @@ func Login(c *gin.Context) {
 		c.JSON(400, "User not verified!")
 		return
 	}
+
+	// check if password is correct
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if err != nil {
+		c.JSON(404, "Password not correct")
+		return
+	}
+
 	// generate jwt token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"iat":       time.Now().Unix(),
@@ -186,20 +194,20 @@ func Verify(c *gin.Context) {
 	c.JSON(200, "Successfully verified your account!")
 }
 
-type forgotPasswordNewReq struct {
+type forgotPasswordReq struct {
 	Email string `json:"email"`
 }
 
-func (r forgotPasswordNewReq) Validate() error {
+func (r forgotPasswordReq) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Email, validation.Required),
 	)
 }
 
-func ForgotPasswordNew(c *gin.Context) {
+func ForgotPassword(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	var req forgotPasswordNewReq
+	var req forgotPasswordReq
 	if ok := utils.BindData(c, &req); !ok {
 		return
 	}
@@ -213,35 +221,44 @@ func ForgotPasswordNew(c *gin.Context) {
 	}
 
 	token := uuid.New()
-	link := fmt.Sprintf("%s/auth/forgot/password/%s", os.Getenv("FRONTEND_HOST"), token)
+	db.Create(&models.Token{
+		Token:     token.String(),
+		UserId:    int(user.ID),
+		ExpiresAt: time.Now().AddDate(0, 0, 7),
+	})
+	link := fmt.Sprintf("%s/auth/reset-pw/%s", os.Getenv("FRONTEND_HOST"), token)
+	println(link)
 
 	utils.SendEmail("pikayuhno@gmail.com", []string{"muazahmed019@gmail.com"}, []byte(link))
 
 	c.JSON(200, "Successfully sent link for changing password!")
 }
 
-type forgotPasswordReq struct {
+type resetPasswordReq struct {
 	Token       string `json:"token"`
 	NewPassword string `json:"newPassword"`
 }
 
-func (r forgotPasswordReq) Validate() error {
+func (r resetPasswordReq) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Token, validation.Required),
 		validation.Field(&r.NewPassword, validation.Required),
 	)
 }
 
-func ForgotPassword(c *gin.Context) {
+func ResetPassword(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	var req forgotPasswordReq
+	var req resetPasswordReq
 	if ok := utils.BindData(c, &req); !ok {
 		return
 	}
 
 	var token models.Token
 	db.First(&token, "token = ?", req.Token)
+
+	println("Token", token.Token)
+	println("Token", token.UserId)
 
 	var user models.User
 	err := db.First(&user, "id = ?", token.UserId).Error
@@ -259,7 +276,7 @@ func ForgotPassword(c *gin.Context) {
 	user.Password = string(hash)
 	db.Model(&models.User{}).Where("id = ?", token.UserId).Update("password", string(hash))
 
-	c.JSON(200, "Successfully sent link for changing password!")
+	c.JSON(200, "Successfully changed password!")
 }
 
 func Logout(c *gin.Context) {
