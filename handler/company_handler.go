@@ -34,7 +34,11 @@ func GetCompany(c *gin.Context) {
 }
 
 type createCompanyReq struct {
-	Name string `json:"name"`
+	Name       string `json:"name"`
+	UserId     int    `json:"userId"`
+	WebsiteUrl string `json:"websiteUrl`
+	Address    string `json:"address"`
+	Country    string `json:"country"`
 }
 
 func (r createCompanyReq) Validate() error {
@@ -60,17 +64,20 @@ func CreateCompany(c *gin.Context) {
 	}
 
 	newCompany := &models.Company{
-		Name:   req.Name,
-		UserID: c.MustGet("user").(jwt.MapClaims)["id"].(uint),
+		Name:       req.Name,
+		OwnerID:    uint(req.UserId),
+		Country:    req.Country,
+		WebsiteUrl: req.WebsiteUrl,
+		Address:    req.Address,
 	}
 	db.Create(&newCompany)
 
 	c.JSON(200, "Successfully created new company")
 }
 
-
 type deleteCompanyReq struct {
 	Id string `json:"id"`
+}
 
 func GenerateCompanyInvite(db *gorm.DB, company_id int) int {
 	code := 10000000 + rand.Intn(99999999-10000000)

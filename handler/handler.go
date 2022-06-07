@@ -11,14 +11,19 @@ func InitHandler() *gin.Engine {
 	r := gin.Default()
 
 	conn := db.CreateConnection()
-	//r.Use(cors.Default())
-	r.Use(cors.New(cors.Config{
+	c := cors.DefaultConfig()
+	c.AllowOrigins = []string{"http://localhost:3000"}
+	c.AllowCredentials = true
+	c.AllowHeaders = []string{"Content-Type", "Origin", "Accept"}
+
+	r.Use(cors.New(c))
+	/*r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowMethods:     []string{"*"},
-		AllowHeaders:     []string{"Content-Type"},
+		AllowHeaders:     []string{"*"},
 		ExposeHeaders:    []string{"*"},
 		AllowCredentials: true,
-	}))
+	}))*/
 	r.Use(db.Inject(conn))
 
 	r.GET("/ping", func(c *gin.Context) {
@@ -39,12 +44,12 @@ func InitHandler() *gin.Engine {
 	ug.GET(":id", GetUser)
 	ug.GET("/me", GetMe)
 
-	cg := r.Group("/api/v1/companys")
+	cg := r.Group("/api/v1/companies")
+	cg.POST("", CreateCompany)
 	cg.Use(utils.VerifyToken)
 	cg.GET("", GetAllCompanies)
 	cg.GET(":id", GetCompany)
 	cg.GET("/invite/", GetCompanyInvite)
-	cg.POST("", CreateCompany)
 	cg.DELETE("", DeleteCompany)
 
 	apg := r.Group("/api/v1/applications")
@@ -59,9 +64,8 @@ func InitHandler() *gin.Engine {
 
 	jg := r.Group("/api/v1/jobads")
 	jg.Use(utils.VerifyToken)
-	// getJobAdByMe
 	jg.GET("", GetAllJobAds)
-	jg.GET(":id", GetJobAd)
+	jg.GET("/:id", GetJobAd)
 	jg.GET("/company/:id", GetJobAdByCompany)
 	jg.GET("/search/:search", GetJobAdSearch)
 	jg.GET("/salary/", GetJobAdBySalary)

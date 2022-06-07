@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type JobAd struct {
 	ID           uint `gorm:"primarykey"`
 	Name         string
@@ -7,6 +9,8 @@ type JobAd struct {
 	Salary       float64
 	CompanyID    uint
 	Open         bool
-	Location     string
+	Country      string
+	City         string
+	CreatedAt    time.Time
 	Applications []Application
 }

@@ -1,7 +1,7 @@
 package handler
 
 import (
-
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -37,7 +37,6 @@ func GetJobAd(c *gin.Context) {
 	c.JSON(200, jobAd)
 }
 
-
 func GetJobAdSearch(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
@@ -46,7 +45,6 @@ func GetJobAdSearch(c *gin.Context) {
 
 	c.JSON(200, jobAds)
 }
-
 
 func GetJobAdByCompany(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
@@ -58,7 +56,6 @@ func GetJobAdByCompany(c *gin.Context) {
 
 	c.JSON(200, jobAds)
 }
-
 
 type salaryReqJobAd struct {
 	Lowersalary float64 `json:"lower_salary"`
@@ -87,23 +84,20 @@ func GetJobAdBySalary(c *gin.Context) {
 	c.JSON(200, jobAds)
 }
 
-
 type createJobAdReq struct {
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
 	Salary      float64 `json:"salary"`
-	CompanyId   uint    `json:"company_id"`
-	Location    string  `json:"location"`
+	Country     string  `json:"country"`
+	City        string  `json:"city"`
 }
 
 func (r createJobAdReq) Validate() error {
-	return validation.ValidateStruct(&r,
-		validation.Field(&r.Name, validation.Required),
-		validation.Field(&r.Description, validation.Required),
-		// validation.Field(&r.Salary, validation.Required),
-	)
-}
+	return validation.ValidateStruct(&r) // validation.Field(&r.Name, validation.Required),
+	// validation.Field(&r.Description, validation.Required),
+	// validation.Field(&r.Salary, validation.Required),
 
+}
 
 func CreateJobAd(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
@@ -114,7 +108,7 @@ func CreateJobAd(c *gin.Context) {
 	}
 
 	var user models.User
-	db.First(&user, "id = ?", c.MustGet("user").(jwt.MapClaims)["id"].(uint))
+	db.First(&user, "id = ?", c.MustGet("user").(jwt.MapClaims)["id"].(float64))
 
 	var company models.Company
 	result := db.Find(&company, "id = ?", user.CompanyID)
@@ -127,9 +121,10 @@ func CreateJobAd(c *gin.Context) {
 		Name:        req.Name,
 		Description: req.Description,
 		Salary:      req.Salary,
-		CompanyID:   req.CompanyId,
 		Open:        true,
-		Location:    req.Location,
+		Country:     req.Country,
+		City:        req.City,
+		CreatedAt:   time.Now(),
 		CompanyID:   company.ID,
 	}
 	db.Create(newJobAd)

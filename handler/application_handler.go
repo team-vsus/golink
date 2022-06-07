@@ -1,11 +1,7 @@
 package handler
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -57,8 +53,8 @@ func GetAllApplicationByMe(c *gin.Context) {
 }
 
 type createApplicationReq struct {
-	JobAdID   uint                `json:"job_ad_id"`
-	Documents []createReqDocument `json:"documents"`
+	JobAdID   uint              `json:"job_ad_id"`
+	Documents []models.Document `json:"documents"`
 }
 
 func (r createApplicationReq) Validate() error {
@@ -66,14 +62,6 @@ func (r createApplicationReq) Validate() error {
 		validation.Field(&r.JobAdID, validation.Required),
 	)
 }
-
-
-
-func CreateApplication (c *gin.Context) {
-	db := c.MustGet("db").(*gorm.DB)
-
-
-	var req createReq
 
 func CreateApplication(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
@@ -84,7 +72,6 @@ func CreateApplication(c *gin.Context) {
 		return
 	}
 
-
 	var jobad models.JobAd
 	result := db.Find(&jobad, "id = ?", req.JobAdID)
 	if result.RowsAffected == 0 {
@@ -92,23 +79,22 @@ func CreateApplication(c *gin.Context) {
 		return
 	}
 
-
 	newApplication := &models.Application{
-		JobAdID: req.JobAdID,
+		JobAdID:   req.JobAdID,
 		Documents: req.Documents,
 		CreatedAt: time.Now(),
-		Pinned: false,
-		UserID: c.MustGet("user").(jwt.MapClaims)["id"].(uint),
+		Pinned:    false,
+		UserID:    c.MustGet("user").(jwt.MapClaims)["id"].(uint),
 	}
 	db.Create(newApplication)
 
-	uploadDocument(db,req.Documents)
+	//uploadDocument(db, req.Documents)
 
 	for _, document := range req.Documents {
 		newDocument := &models.Document{
 			Name:          document.Name,
 			Size:          document.Size,
-			ApplicationID: document.ApplicationId,
+			ApplicationID: document.ApplicationID,
 		}
 		db.Create(&newDocument)
 	}
@@ -121,8 +107,7 @@ func CreateApplication(c *gin.Context) {
 	}
 	db.Create(&application)
 
-
-	 c.JSON(200, newApplication)
+	c.JSON(200, newApplication)
 }
 
 type deleteApplicationReq struct {
@@ -156,22 +141,21 @@ func DeleteApplication(c *gin.Context) {
 	c.JSON(200, "Successfully deleted application")
 }
 
+func UploadDocument(c *gin.Context, db *gorm.DB, documents []models.Document) {
+	_, err := c.MultipartForm()
+	if err != nil {
+		c.String(http.StatusBadRequest, "get form err: %s", err.Error())
+		return
+	}
+	/*file := form.File["files"]
 
-func uploadDocument(db *gorm.DB, documents [] models.Document){
-		form, err := c.MultipartForm()
-		if err != nil {
-			c.String(http.StatusBadRequest, "get form err: %s", err.Error())
+	for _, file := range documents {
+		filename := filepath.Base(file.Name)
+		if err := c.SaveUploadedFile(file, filename); err != nil {
+			c.String(http.StatusBadRequest, "upload file err: %s", err.Error())
 			return
 		}
-		file := form.File["files"]
-
-		for _, file := range documents {
-			filename := filepath.Base(file.Name)
-			if err := c.SaveUploadedFile(file, filename); err != nil {
-				c.String(http.StatusBadRequest, "upload file err: %s", err.Error())
-				return
-			}
-		}
+	}*/
 }
 
 func DeleteApplicationbyJobAd(c *gin.Context) {

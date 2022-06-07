@@ -9,7 +9,7 @@ type User struct {
 	Locked    bool
 	Verified  bool
 	Applicant bool
-	CompanyID uint
+	CompanyID uint `gorm:"default:(-)"`
 	// Description       string
 	Applications      []Application
 	ChannelsCandidate []Channel `gorm:"foreignKey:CandidateID"`

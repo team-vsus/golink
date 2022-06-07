@@ -14,6 +14,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
+	"github.com/jordan-wright/email"
 	"github.com/team-vsus/golink/models"
 	"github.com/team-vsus/golink/utils"
 )
@@ -32,7 +33,7 @@ func (r registerReq) Validate() error {
 		validation.Field(&r.Firstname, validation.Required, validation.Length(2, 20)),
 		validation.Field(&r.Lastname, validation.Required, validation.Length(2, 20)),
 		validation.Field(&r.Password, validation.Required, validation.Length(5, 30)),
-		validation.Field(&r.Applicant, validation.Required),
+		validation.Field(&r.Applicant),
 	)
 }
 
@@ -57,6 +58,7 @@ func Register(c *gin.Context) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 10)
 	if err != nil {
 		c.JSON(500, "Error while creating new user")
+		return
 	}
 
 	// insert to database
@@ -78,13 +80,15 @@ func Register(c *gin.Context) {
 	})
 
 	// send confirmation email
-	utils.SendEmail("pikayuhno@gmail.com", []string{"muazahmed019@gmail.com"}, []byte(token))
+	e := email.NewEmail()
+	e.From = "muazahmed766@outlook.com"
+	e.To = []string{"muazahmed019@gmail.com"}
+	e.Subject = "Veriy your email"
+	e.Text = []byte(token)
+	go utils.SendEmail(e)
+	fmt.Println("Sending email")
 
-	if req.Applicant == true {
-		c.JSON(200, "Successfully created new user")
-	} else {
-		c.JSON(201, "Successfully created new user")
-	}
+	c.JSON(200, "Successfully created new user")
 
 }
 
@@ -191,7 +195,9 @@ func Verify(c *gin.Context) {
 
 	db.Model(&models.User{}).Where("id = ?", token.UserId).Update("verified", true)
 
-	c.JSON(200, "Successfully verified your account!")
+	c.JSON(200, gin.H{
+		"id": token.UserId,
+	})
 }
 
 type forgotPasswordReq struct {
@@ -229,7 +235,7 @@ func ForgotPassword(c *gin.Context) {
 	link := fmt.Sprintf("%s/auth/reset-pw/%s", os.Getenv("FRONTEND_HOST"), token)
 	println(link)
 
-	utils.SendEmail("pikayuhno@gmail.com", []string{"muazahmed019@gmail.com"}, []byte(link))
+	//utils.SendEmail("pikayuhno@gmail.com", []string{"muazahmed019@gmail.com"}, []byte(link))
 
 	c.JSON(200, "Successfully sent link for changing password!")
 }
