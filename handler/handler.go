@@ -38,6 +38,7 @@ func InitHandler() *gin.Engine {
 	ug.GET("", GetAllUsers)
 	ug.GET("/:id", GetUser)
 	ug.GET("/me", GetMe)
+	ug.GET("/company/", GetMyCompany)
 
 	cg := r.Group("/api/v1/companys")
 	cg.Use(utils.VerifyToken)
@@ -88,7 +89,7 @@ func InitHandler() *gin.Engine {
 	mg := r.Group("/api/v1/messages")
 	mg.Use(utils.VerifyToken)
 	mg.GET("", GetAllMessages)
-	mg.GET("/:channelid", GetMessageByChannelId)
+	mg.GET("/:id", GetMessageByChannelId)
 	mg.POST("", createMessage)
 	mg.DELETE("/:id", deleteMessage)
 	mg.DELETE("", deleteAllMessagesByChannelId)

@@ -30,15 +30,35 @@ func GetChannel(c *gin.Context) {
 	c.JSON(200, channel)
 }
 
+type returns struct {
+	Name      string `json:"name"`
+	Firstname string `json:"firstname"`
+	Lastname  string `json:"lastname"`
+}
+
+// big sus
 func GetChannelByUser(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	userID := uint(c.MustGet("user").(jwt.MapClaims)["id"].(float64))
 
 	var channel models.Channel
-	db.Find(&channel, "candidate_id = ? or recruiter_id = ?", userID, userID)
 
-	c.JSON(200, channel)
+	var channels []returns
+
+	result := db.Find(&channel, "candidate_id = ?", userID)
+	if result.RowsAffected == 0 {
+		result = db.Find(&channel, "recruiter_id = ?", userID)
+		if result.RowsAffected == 0 {
+			c.JSON(400, "Channel does not exist")
+			return
+		}
+		c.JSON(200, db.Table("channels").Select("channels.name, users.firstname, users.lastname").Joins("JOIN users ON users.id = channels.candidate_id").Where("recruiter_id = ?", userID).Find(&channels))
+		return
+	}
+
+	db.Table("channels").Select("channels.name, users.firstname, users.lastname").Joins("JOIN users ON users.id = channels.recruiter_id").Where("candidate_id = ?", userID).Find(&channels)
+	c.JSON(200, channels)
 }
 
 type createChannelReq struct {

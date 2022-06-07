@@ -51,7 +51,7 @@ func GetJobAdSearch(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	var jobAds []models.JobAd
-	db.Where("description LIKE ?", "%"+c.Param("search")+"%").Find(&jobAds)
+	db.Where("description LIKE ?", c.Param("search")).Find(&jobAds)
 
 	c.JSON(200, jobAds)
 }

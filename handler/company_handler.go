@@ -22,6 +22,22 @@ func GetAllCompanies(c *gin.Context) {
 	c.JSON(200, companies)
 }
 
+func GetMyCompany(c *gin.Context) {
+	db := c.MustGet("db").(*gorm.DB)
+
+	var user models.User
+	db.First(&user, "id = ?", uint(c.MustGet("user").(jwt.MapClaims)["id"].(float64)))
+
+	var company models.Company
+	result := db.Find(&company, "id = ?", user.CompanyID)
+	if result.RowsAffected == 0 {
+		c.JSON(400, "Company does not exist")
+		return
+	}
+
+	c.JSON(200, company)
+}
+
 func GetCompany(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
@@ -59,11 +75,18 @@ func CreateCompany(c *gin.Context) {
 		return
 	}
 
+	var id = uint(c.MustGet("user").(jwt.MapClaims)["id"].(float64))
+
 	newCompany := &models.Company{
 		Name:   req.Name,
-		UserID: uint(c.MustGet("user").(jwt.MapClaims)["id"].(float64)),
+		UserID: id,
 	}
 	db.Create(&newCompany)
+
+	var user models.User
+	db.First(&user, "id = ?", id)
+	user.CompanyID = newCompany.ID
+	db.Save(&user)
 
 	c.JSON(200, "Successfully created new company")
 }

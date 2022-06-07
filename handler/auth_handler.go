@@ -130,6 +130,7 @@ func Login(c *gin.Context) {
 		"id":        user.ID,
 		"firstname": user.Firstname,
 		"lastname":  user.Lastname,
+		"applicant": user.Applicant,
 	})
 
 	tokenStr, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
@@ -146,6 +147,7 @@ func Login(c *gin.Context) {
 		"email":     user.Email,
 		"firstname": user.Firstname,
 		"lastname":  user.Lastname,
+		"applicant": user.Applicant,
 	})
 }
 
