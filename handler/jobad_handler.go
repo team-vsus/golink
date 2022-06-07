@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	validation "github.com/go-ozzo/ozzo-validation"
@@ -47,6 +49,7 @@ func GetOpenJobAd(c *gin.Context) {
 }
 
 // SUUUUUS
+
 func GetJobAdSearch(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
@@ -98,18 +101,17 @@ type createJobAdReq struct {
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
 	Salary      float64 `json:"salary"`
-	Location    string  `json:"location"`
+	Country     string  `json:"country"`
+	City        string  `json:"city"`
 }
 
 func (r createJobAdReq) Validate() error {
-	return validation.ValidateStruct(&r,
-		validation.Field(&r.Name, validation.Required),
-		validation.Field(&r.Description, validation.Required),
-		// validation.Field(&r.Salary, validation.Required),
-	)
+	return validation.ValidateStruct(&r) // validation.Field(&r.Name, validation.Required),
+	// validation.Field(&r.Description, validation.Required),
+	// validation.Field(&r.Salary, validation.Required),
+
 }
 
-// sus companyid from user
 func CreateJobAd(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
@@ -133,7 +135,9 @@ func CreateJobAd(c *gin.Context) {
 		Description: req.Description,
 		Salary:      req.Salary,
 		Open:        true,
-		Location:    req.Location,
+		Country:     req.Country,
+		City:        req.City,
+		CreatedAt:   time.Now(),
 		CompanyID:   company.ID,
 	}
 	db.Create(newJobAd)
