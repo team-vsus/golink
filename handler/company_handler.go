@@ -36,7 +36,7 @@ func GetCompany(c *gin.Context) {
 type createCompanyReq struct {
 	Name       string `json:"name"`
 	UserId     int    `json:"userId"`
-	WebsiteUrl string `json:"websiteUrl`
+	WebsiteUrl string `json:"websiteUrl"`
 	Address    string `json:"address"`
 	Country    string `json:"country"`
 }
