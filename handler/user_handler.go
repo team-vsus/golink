@@ -24,7 +24,7 @@ func GetUser(c *gin.Context) {
 	var user models.User
 
 	// Check if returns RecordNotFound error
-	err := db.First(&user, "Id = ?", id).Error
+	err := db.First(&user, "id = ?", id).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		c.JSON(404, "User not found")
 		return
@@ -39,7 +39,7 @@ func GetMe(c *gin.Context) {
 	userId := jwtPayload["id"]
 
 	var user models.User
-	err := db.First(&user, "id = ?", userId).Error
+	err := db.Where("id = ?", userId).First(&user).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		c.JSON(404, gin.H{

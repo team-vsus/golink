@@ -25,7 +25,7 @@ func GetAllApplications(c *gin.Context) {
 func GetApplicationByJobAd(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	id := jwt.MapClaims(c.MustGet("user").(jwt.MapClaims))["id"].(uint)
+	id := c.Param("id")
 	applications := []models.Application{}
 	db.Find(&applications, "job_ad_id = ?", id)
 
@@ -45,7 +45,8 @@ func GetAllApplicationByUser(c *gin.Context) {
 func GetAllApplicationByMe(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
-	id := c.MustGet("user").(jwt.MapClaims)["id"].(uint)
+	id := uint(c.MustGet("user").(jwt.MapClaims)["id"].(float64))
+
 	applications := []models.Application{}
 	db.Find(&applications, "user_id = ?", id)
 
@@ -103,7 +104,7 @@ func CreateApplication(c *gin.Context) {
 		JobAdID:   req.JobAdID,
 		CreatedAt: time.Now(),
 		Pinned:    false,
-		UserID:    c.MustGet("user").(jwt.MapClaims)["id"].(uint),
+		UserID:    uint(c.MustGet("user").(jwt.MapClaims)["id"].(float64)),
 	}
 	db.Create(&application)
 

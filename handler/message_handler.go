@@ -19,7 +19,7 @@ func GetAllMessages(c *gin.Context) {
 
 func GetMessageByChannelId(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
-	channelid := c.Param("channelid")
+	channelid := c.Param("id")
 
 	var message models.Message
 

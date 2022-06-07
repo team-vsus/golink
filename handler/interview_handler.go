@@ -34,8 +34,8 @@ func GetInterviewByApplicationId(c *gin.Context) {
 }
 
 type creatReqInterview struct {
-	ApplicationId uint      `json:"application_id"`
-	Date          time.Time `json:"date"`
+	ApplicationId uint   `json:"application_id"`
+	Date          string `json:"date"`
 }
 
 func (r creatReqInterview) Validate() error {
@@ -53,16 +53,22 @@ func createInterview(c *gin.Context) {
 		return
 	}
 
-	var interview models.Interview
-	result := db.Find(&interview, "id = ?", req.ApplicationId)
+	var application models.Application
+	result := db.Find(&application, "id = ?", req.ApplicationId)
 	if result.RowsAffected == 0 {
 		c.JSON(400, "Application does not exist")
 		return
 	}
 
+	var date, err = time.Parse("2006-01-02 03:04:05", req.Date)
+	if err != nil {
+		c.JSON(400, "Invalid date format")
+		return
+	}
+
 	newInterview := &models.Interview{
 		ApplicationID: req.ApplicationId,
-		Date:          req.Date,
+		Date:          date,
 	}
 
 	db.Create(newInterview)

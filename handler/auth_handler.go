@@ -33,7 +33,6 @@ func (r registerReq) Validate() error {
 		validation.Field(&r.Firstname, validation.Required, validation.Length(2, 20)),
 		validation.Field(&r.Lastname, validation.Required, validation.Length(2, 20)),
 		validation.Field(&r.Password, validation.Required, validation.Length(5, 30)),
-		validation.Field(&r.Applicant),
 	)
 }
 
@@ -143,6 +142,7 @@ func Login(c *gin.Context) {
 		"id":        user.ID,
 		"firstname": user.Firstname,
 		"lastname":  user.Lastname,
+		"applicant": user.Applicant,
 	})
 
 	tokenStr, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
@@ -159,6 +159,7 @@ func Login(c *gin.Context) {
 		"email":     user.Email,
 		"firstname": user.Firstname,
 		"lastname":  user.Lastname,
+		"applicant": user.Applicant,
 	})
 }
 

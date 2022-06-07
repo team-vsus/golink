@@ -10,7 +10,7 @@ import (
 )
 
 func VerifyToken(c *gin.Context) {
-	// tokenString := c.GetHeader("authorization")
+	//tokenString := c.GetHeader("authorization")
 	tokenString, err := c.Cookie("token")
 
 	if len(tokenString) == 0 || err != nil {
